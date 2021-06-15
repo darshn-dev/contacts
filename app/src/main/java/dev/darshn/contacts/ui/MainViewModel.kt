@@ -3,9 +3,11 @@ package dev.darshn.contacts.ui
 import android.accounts.AccountManager
 import android.content.ContentProviderOperation
 import android.content.OperationApplicationException
+import android.os.Build
 import android.provider.ContactsContract
 
 import android.provider.ContactsContract.RawContacts
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +24,7 @@ class MainViewModel @Inject constructor(private val contactRepository: ContactRe
 
     var userList = MutableLiveData<ArrayList<User>>()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun getContactList() {
         viewModelScope.launch {
             userList.postValue(contactRepository.extractContactList())

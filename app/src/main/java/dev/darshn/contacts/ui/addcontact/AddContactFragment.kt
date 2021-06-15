@@ -36,10 +36,23 @@ class AddContactFragment : Fragment() {
 
     private fun initUI() {
         binding.btSubmit.setOnClickListener {
-            viewModel.saveContact(User("salman khan", "12345"))
+            if (binding.etAddName.text.toString().isEmpty()) {
+                binding.etAddName.setError("Please enter first name")
+            } else if (binding.etAddPhone.text.toString().isEmpty()) {
+                binding.etAddPhone.setError("Please enter phone number")
+            } else if (binding.etLastName.text.toString().isEmpty()) {
+                binding.etLastName.setError("Please last name")
+            } else {
+                viewModel.saveContact(
+                    User(
+                        binding.etAddName.text.toString(),
+                        binding.etLastName.text.toString(),
+                        binding.etAddPhone.text.toString()
+                    )
+                )
+            }
+
         }
-
-
     }
 
 

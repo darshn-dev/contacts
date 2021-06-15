@@ -1,10 +1,8 @@
 package dev.darshn.contacts.data.repository
 
-import android.Manifest.permission.READ_CONTACTS
 import android.Manifest.permission.WRITE_CONTACTS
-import android.accounts.AccountManager
 import android.content.ContentProviderOperation
-import android.content.ContentResolver
+import android.content.ContentProviderResult
 import android.content.Context
 import android.content.OperationApplicationException
 import android.content.pm.PackageManager
@@ -13,15 +11,13 @@ import android.os.RemoteException
 import android.provider.ContactsContract
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-
 import dev.darshn.contacts.data.model.User
 import javax.inject.Inject
+
 
 class ContactRepository @Inject constructor(
     var context: Context
 ) {
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     public suspend fun extractContactList(): ArrayList<User> {
         var contactList = arrayListOf<User>()
@@ -60,6 +56,7 @@ class ContactRepository @Inject constructor(
                 }
                 val user = User(
                     cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)),
+                    "",
                     phoneNumValue
                 )
                 contactList.add(user)
@@ -81,51 +78,57 @@ class ContactRepository @Inject constructor(
             ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
                 .withValue(
                     ContactsContract.RawContacts.ACCOUNT_TYPE,
-                    AccountManager.KEY_ACCOUNT_TYPE
+                    null
                 )
                 .withValue(
                     ContactsContract.RawContacts.ACCOUNT_NAME,
-                    AccountManager.KEY_ACCOUNT_NAME
+                    null
                 )
                 .build()
         )
 
         ops.add(
             ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
                 .withValue(
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
                 )
-                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, user.name)
-                .withValue(ContactsContract.CommonDataKinds.StructuredName.IN_VISIBLE_GROUP, true)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, user.fname)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, user.lname)
                 .build()
-        )
+        );
 
         ops.add(
             ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
                 .withValue(
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
                 )
                 .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, user.number)
-                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, "4343")
+                .withValue(
+                    ContactsContract.CommonDataKinds.Phone.TYPE,
+                    ContactsContract.CommonDataKinds.Phone.TYPE_HOME
+                )
                 .build()
-        )
+        );
 
         ops.add(
             ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
                 .withValue(
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
                 )
-                .withValue(ContactsContract.CommonDataKinds.Email.DATA, "")
-                .withValue(ContactsContract.CommonDataKinds.Email.TYPE, "")
-                .build()
-        )
 
+                .withValue(
+                    ContactsContract.CommonDataKinds.Email.TYPE,
+                    ContactsContract.CommonDataKinds.Email.TYPE_WORK
+                )
+                .build()
+        );
         //Log.i("Line43", Data.CONTENT_URI.toString()+" - "+rawContactInsertIndex);
 
 
@@ -136,13 +139,13 @@ class ContactRepository @Inject constructor(
                     WRITE_CONTACTS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+                // context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+                val results: Array<ContentProviderResult> =
+                    context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
             }
         } catch (e: RemoteException) {
-            // TODO Auto-generated catch block
             e.printStackTrace()
         } catch (e: OperationApplicationException) {
-            // TODO Auto-generated catch block
             e.printStackTrace()
         }
     }

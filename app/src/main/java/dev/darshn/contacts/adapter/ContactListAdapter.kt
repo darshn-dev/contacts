@@ -1,9 +1,11 @@
 package dev.darshn.contacts.adapter
 
+import android.os.Build
 import android.text.Layout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import dev.darshn.contacts.adapter.ContactListAdapter.ContactViewHolder
 import dev.darshn.contacts.data.model.User
@@ -13,6 +15,7 @@ class ContactListAdapter : RecyclerView.Adapter<ContactViewHolder>() {
 
     private var contactList = arrayListOf<User>()
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
         val inflater = parent.context.getSystemService(LayoutInflater::class.java)
         val binding = ContactViewBinding.inflate(inflater, parent, false)
@@ -20,7 +23,7 @@ class ContactListAdapter : RecyclerView.Adapter<ContactViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
-        holder.binding.tvUserName.text = contactList[position].name
+        holder.binding.tvUserName.text = contactList[position].fname
         holder.binding.tvUserPhone.text = contactList[position].number
     }
 
